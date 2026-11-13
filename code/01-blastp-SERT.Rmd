@@ -1,0 +1,85 @@
+---
+title: "01-blastp-SERT"
+author: "C. Valdivia"
+date: "2026-11-13"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This will download the SERT sequences for human and zebrafish respectively and create a reference fasta file 
+
+```{bash}
+curl -fsSLG \
+  "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi" \
+  --data-urlencode "db=protein" \
+  --data-urlencode "id=CAA50029.1,ABB88575.1" \
+  --data-urlencode "rettype=fasta" \
+  --data-urlencode "retmode=text" \
+  -o ../data/reference_sert.fasta
+```
+
+Check if that fasta file we created was populated correctly
+
+```{bash}
+head ../data/reference_sert.fasta
+```
+
+Download the predicted amino acid sequences for SERT in chinook salmon that are labeled as serotonin transporter on NCBI
+
+```{bash}
+curl -fsSLG \
+  "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi" \
+  --data-urlencode "db=protein" \
+  --data-urlencode "id=XP_042153127.1,XP_042153126.1, XP_042153125.1, XP_042151900.1, XP_042151899.1, XP_042151898.1" \
+  --data-urlencode "rettype=fasta" \
+  --data-urlencode "retmode=text" \
+  -o ../data/chinook_sert.fasta
+```
+
+
+```{bash}
+head ../data/chinook_sert.fasta
+```
+
+```{bash}
+/Users/valeste/miniconda3/envs/blast/bin/makeblastdb \
+  -in ../data/reference_sert.fasta \
+  -dbtype prot \
+  -out ../data/reference_sert_db
+```
+
+```{bash}
+/Users/valeste/miniconda3/envs/blast/bin/blastp \
+  -query ../data/chinook_sert.fasta \
+  -db ../data/reference_sert_db \
+  -out ../output/chinook_sert_blastp.tsv \
+  -evalue 1e-5 \
+  -max_target_seqs 20 \
+  -outfmt "6 qseqid sseqid pident length qlen slen qcovs evalue bitscore"
+```
+
+
+```{r}
+library(readr)
+
+# Read BLASTP results
+blast_results <- read_tsv(
+  "../output/chinook_sert_blastp.tsv",
+  col_names = c(
+    "query_id", "subject_id", "percent_identity",
+    "alignment_length", "query_length", "subject_length",
+    "query_coverage", "evalue", "bitscore"
+  )
+)
+
+# View dataframe
+View(blast_results)
+
+# Export as CSV
+write_csv(blast_results, "../output/chinook_sert_blastp.csv")
+```
+
+
