@@ -1,0 +1,13 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+*.fasta
+*.pdb
+*.phr
+*.pin
+*.pjs
+*.pot
+*.psq
+*.ptf
+*.pto
