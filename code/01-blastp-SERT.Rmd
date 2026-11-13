@@ -11,11 +11,15 @@ knitr::opts_chunk$set(echo = TRUE)
 
 This will download the SERT sequences for human and zebrafish respectively and create a reference fasta file 
 
+NP_001170930.1 = zebrafish SERTb
+ABB88575.1 = zebrafish SERTa
+CAA50029.1 = human SERT
+
 ```{bash}
 curl -fsSLG \
   "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi" \
   --data-urlencode "db=protein" \
-  --data-urlencode "id=CAA50029.1,ABB88575.1" \
+  --data-urlencode "id=CAA50029.1,ABB88575.1, NP_001170930.1" \
   --data-urlencode "rettype=fasta" \
   --data-urlencode "retmode=text" \
   -o ../data/reference_sert.fasta
@@ -81,5 +85,31 @@ View(blast_results)
 # Export as CSV
 write_csv(blast_results, "../output/chinook_sert_blastp.csv")
 ```
+
+Below we will assess whether the chinook SERT sequences represent differnt groups or not
+```{r}
+library(Biostrings)
+library(dplyr)
+library(tibble)
+
+chinook <- readAAStringSet("../data/chinook_sert.fasta")
+
+sequence_table <- tibble(
+  accession = sub(" .*", "", names(chinook)),
+  sequence = as.character(chinook)
+) %>%
+  mutate(sequence_group = match(sequence, unique(sequence))) %>%
+  select(accession, sequence_group)
+
+print(sequence_table)
+```
+The above results indicate we have only two unique amino acid sequences for Chinook SERT 
+
+Sequence group	| NCBI accessions	                                | Unique protein sequences
+Group 1	        | XP_042153125.1, XP_042153126.1, XP_042153127.1	| 1
+Group 2	        | XP_042151898.1, XP_042151899.1, XP_042151900.1	| 1
+
+We can select two representitive sequences to identify which of the two groups is SERTa vs SERTb
+
 
 
