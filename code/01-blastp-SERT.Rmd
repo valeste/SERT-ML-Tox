@@ -47,16 +47,24 @@ curl -fsSLG \
 ```{bash}
 head ../data/chinook_sert.fasta
 ```
+had to hard code the directory unfortunately. adjust the first line as needed to find the makeblastdb pathway
+
+input in a different terminal window (outside of R) the following command
+
+conda activate blast
+which makeblastdb
+
+the output will indicate the pathway
 
 ```{bash}
-/Users/valeste/miniconda3/envs/blast/bin/makeblastdb \
+  /opt/miniconda3/envs/blast/bin/makeblastdb \
   -in ../data/reference_sert.fasta \
   -dbtype prot \
   -out ../data/reference_sert_db
 ```
 
 ```{bash}
-/Users/valeste/miniconda3/envs/blast/bin/blastp \
+/opt/miniconda3/envs/blast/bin/blastp \
   -query ../data/chinook_sert.fasta \
   -db ../data/reference_sert_db \
   -out ../output/chinook_sert_blastp.tsv \
@@ -103,6 +111,32 @@ sequence_table <- tibble(
 
 print(sequence_table)
 ```
+
+```{r}
+library(Biostrings)
+
+# Read all Chinook sequences
+chinook <- readAAStringSet("../data/chinook_sert.fasta")
+
+# Select one representative from each group
+chinook_unique <- chinook[
+  grepl("XP_042153127.1|XP_042151898.1", names(chinook))
+]
+
+# Save the two sequences
+writeXStringSet(
+  chinook_unique,
+  "../data/chinook_sert_unique.fasta"
+)
+```
+
+
+```{bash}
+cat ../data/reference_sert.fasta \
+    ../data/chinook_sert_unique.fasta \
+    > ../data/sert_alignment.fasta
+```
+
 The above results indicate we have only two unique amino acid sequences for Chinook SERT 
 
 Sequence group	| NCBI accessions	                                | Unique protein sequences
@@ -110,6 +144,3 @@ Group 1	        | XP_042153125.1, XP_042153126.1, XP_042153127.1	| 1
 Group 2	        | XP_042151898.1, XP_042151899.1, XP_042151900.1	| 1
 
 We can select two representitive sequences to identify which of the two groups is SERTa vs SERTb
-
-
-
