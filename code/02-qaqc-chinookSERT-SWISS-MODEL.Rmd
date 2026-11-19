@@ -1,0 +1,64 @@
+---
+title: "02-qaqcSWISS-MODEL"
+output: html_document
+date: "2026-11-18"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(bio3d)
+library(dplyr)
+```
+
+In the Structure Assessment tab of your project in SWISS-MODEL, download the associated file under QMEANDisCo. The file downloaded will be a PDB file that we will read in here to evaluate the local QMEAN score for each amino acid of the homologoy modeled chinook SERT.
+- resno: Residue number
+- resid: Amino acid identity
+- b: Local quality score stored in the B-factor field
+
+```{r}
+
+# Replace with the actual filename
+pdb_XP_042153127.1 <- read.pdb("../data/XP_042153127.1_chinook_sert_qmean.pdb")
+
+pdb_XP_042151898.1 <- read.pdb("../data/XP_042151898.1_chinook_sert_qmean.pdb")
+
+# Extract local quality scores
+local_scores_XP_042153127.1 <- pdb_XP_042153127.1$atom %>%
+  filter(elety == "CA") %>%
+  select(resno, resid, b)
+
+
+local_scores_XP_042151898.1 <- pdb_XP_042151898.1$atom %>%
+  filter(elety == "CA") %>%
+  select(resno, resid, b)
+
+View(local_scores_XP_042153127.1)
+View(local_scores_XP_042151898.1)
+```
+
+```{r}
+
+#  SERT S1 binding-site residue numbers (in chinook sequence)
+s1_positions <- c(
+  109, 112, 186, 190, 191,
+  350, 351, 356, 453, 454, 512
+)
+
+# Extract local quality scores for S1 binding-site
+s1_quality_XP_042153127.1 <- local_scores_XP_042153127.1 %>%
+  filter(resno %in% s1_positions) %>%
+  arrange(resno)
+
+s1_quality_XP_042151898.1 <- local_scores_XP_042151898.1 %>%
+  filter(resno %in% s1_positions) %>%
+  arrange(resno)
+
+print(s1_quality_XP_042153127.1)
+print(s1_quality_XP_042151898.1)
+```
+
+Generally, scores closer to 1 indicate higher predicted local structural quality. Scores below approximately 0.6 warrant closer inspection. 
+
+*Our results support the structural plausibility of the XP_042151898.1 and XP_042153127.1 modeled Chinook SERT binding pocket with local scores that indicate that the modeled environments around these residues are predicted to have good structural accuracy.*
+
+Although these local scores at the S1 central binding-site indicate good estimated structural reliability they do not confirm binding-pocket accuracy. *Next steps involve protein preperation and confirmation that the modeled binding-site can accomodate known SERT inhibitors.*
